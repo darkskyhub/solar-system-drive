@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Solar System Drive</title>
+<meta name="application-name" content="Solar System Drive">
 <meta name="description" content="Dark Sky Hub travel companion for the five scenic routes to Siding Spring and the Anglo-Australian Telescope.">
 <meta name="theme-color" content="#07090f">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,12 +12,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
-<link rel="apple-touch-icon" href="https://darkskyhub.grok.me/images/dsh-coin.jpg">
+<link rel="apple-touch-icon" href="./favicon.svg">
 <style>
   html,body{margin:0;height:100%;background:#07090f;color:#f3efe4;font-family:Figtree,system-ui,sans-serif}
   .bar{position:fixed;top:0;left:0;right:0;z-index:2;display:flex;gap:10px;align-items:center;padding:10px 14px;background:#07090fd9;backdrop-filter:blur(8px);font-size:13px}
   .bar b{letter-spacing:.12em;text-transform:uppercase;font-weight:700}
-  .bar a{color:#e8a04a;margin-left:auto;text-decoration:none}
+  .bar button{color:#e8a04a;margin-left:auto;background:none;border:0;font:inherit;cursor:pointer}
   iframe{position:fixed;inset:44px 0 0 0;width:100%;height:calc(100% - 44px);border:0;background:#07090f}
   .note{position:fixed;inset:44px 16px auto 16px;font-size:14px;line-height:1.5;color:#c9c2b4}
 </style>
@@ -25,11 +26,16 @@
   <div class="bar">
     <b>Solar System Drive</b>
     <span>Dark Sky Hub</span>
-    <a href="https://darkskyhub.grok.me" target="_blank" rel="noreferrer">Open full screen</a>
+    <button type="button" id="fullBtn">Open full screen</button>
   </div>
-  <p class="note">Loading the Drive. If the map is blank, tap Open full screen.</p>
-  <iframe title="Solar System Drive" src="https://darkskyhub.grok.me/" allow="geolocation; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>
+  <p class="note">Loading the Drive.</p>
+  <iframe id="skyFrame" title="Solar System Drive" src="https://darkskyhub.grok.me/" allow="geolocation; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>
   <script>
+    document.getElementById('fullBtn').addEventListener('click', function () {
+      var frame = document.getElementById('skyFrame');
+      if (frame.requestFullscreen) frame.requestFullscreen();
+      else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
+    });
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js');
     }
