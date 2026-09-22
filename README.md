@@ -3,7 +3,7 @@
 Dark Sky Hub travel companion for the world's largest virtual solar system.
 
 Public door: https://darkskyhub.github.io/solar-system-drive/
-Live Drive: https://darkskyhub.grok.me/
+Live Drive: https://clear-cloud-eagle-lake.grok.me/
 
 Five scenic routes to Siding Spring Observatory and the Anglo-Australian Telescope. Planet boards stay on the phone after one load in town. Open in Maps still needs signal.
 
