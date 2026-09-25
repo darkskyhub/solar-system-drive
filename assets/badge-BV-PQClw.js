@@ -1,0 +1,1 @@
+import{a as e,b as t}from"./index-uwWco93A.js";var n=t();function r({variant:t=`spotted`,className:r,children:i}){return(0,n.jsx)(`span`,{className:e(`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] tracking-[0.16em] uppercase`,t===`spotted`&&`bg-primary/15 text-primary`,t===`cream`&&`bg-foreground/8 text-muted-foreground`,r),children:i})}export{r as t};
