@@ -18,8 +18,15 @@
   .bar{position:fixed;top:0;left:0;right:0;z-index:2;display:flex;gap:10px;align-items:center;padding:10px 14px;background:#07090fd9;backdrop-filter:blur(8px);font-size:13px}
   .bar b{letter-spacing:.12em;text-transform:uppercase;font-weight:700}
   .bar button{color:#e8a04a;margin-left:auto;background:none;border:0;font:inherit;cursor:pointer}
-  iframe{position:fixed;inset:44px 0 0 0;width:100%;height:calc(100% - 44px);border:0;background:#07090f}
-  .note{position:fixed;inset:44px 16px auto 16px;font-size:14px;line-height:1.5;color:#c9c2b4}
+  iframe{position:fixed;inset:44px 0 92px 0;width:100%;height:calc(100% - 136px);border:0;background:#07090f}
+  .family{position:fixed;left:0;right:0;bottom:0;z-index:2;padding:10px 14px 14px;background:#07090f;border-top:1px solid rgba(232,160,74,.28);font-size:13px;line-height:1.45}
+  .family .hub{margin:0 0 4px;letter-spacing:.08em;text-transform:uppercase;font-size:11px;color:#c9c2b4}
+  .family .row{margin:0;color:#f3efe4}
+  .family a{color:#e8a04a;text-decoration:none}
+  .family a:hover{text-decoration:underline}
+  .family .here{color:#f3efe4}
+  .family .dot{color:#8b8376}
+  .family .site{margin:4px 0 0}
 </style>
 </head>
 <body>
@@ -28,17 +35,29 @@
     <span>Dark Sky Hub</span>
     <button type="button" id="fullBtn">Open full screen</button>
   </div>
-  <p class="note">Loading the Drive.</p>
-  <iframe id="skyFrame" title="Solar System Drive" src="https://clear-cloud-eagle-lake.grok.me/?v=20260922-offline" allow="geolocation; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>
+  <iframe id="skyFrame" title="Solar System Drive" src="https://clear-cloud-eagle-lake.grok.me/?v=20260925-family" allow="geolocation; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>
+  <footer class="family">
+    <p class="hub">Dark Sky Hub</p>
+    <p class="row"><span class="here">Solar System Drive</span> <span class="dot">·</span> <a href="https://darkskyhub.github.io/where-we-are/">Sky tonight</a> <span class="dot">·</span> <a href="https://darkskyhub.github.io/dark-sky-calendar/">Dark Sky Calendar</a> <span class="dot">·</span> <a href="https://darkskyhub.github.io/dark-sky-birds/">Dark Sky Birds</a></p>
+    <p class="site"><a href="https://darkskyhub.com.au/">darkskyhub.com.au</a></p>
+  </footer>
   <script>
-    document.getElementById('fullBtn').addEventListener('click', function () {
-      var frame = document.getElementById('skyFrame');
+    var live = "https://clear-cloud-eagle-lake.grok.me/?v=20260925-family";
+    var fallback = "./offline.html";
+    var frame = document.getElementById("skyFrame");
+    function useFallback() {
+      if (frame.getAttribute("data-fallback") === "1") return;
+      frame.setAttribute("data-fallback", "1");
+      frame.src = fallback;
+    }
+    if (!navigator.onLine) useFallback();
+    window.addEventListener("offline", useFallback);
+    frame.addEventListener("error", useFallback);
+    document.getElementById("fullBtn").addEventListener("click", function () {
       if (frame.requestFullscreen) frame.requestFullscreen();
       else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
     });
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js');
-    }
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
   </script>
 </body>
 </html>
