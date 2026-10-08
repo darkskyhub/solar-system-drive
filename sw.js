@@ -1,4 +1,4 @@
-const CACHE = "solar-system-drive-v20260926";
+const CACHE = "solar-system-drive-v20261008";
 
 const SHELL = [
   "",
