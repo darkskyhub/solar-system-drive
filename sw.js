@@ -1,4 +1,4 @@
-const CACHE = "solar-system-drive-v20261012";
+const CACHE = "solar-system-drive-v20261012b";
 
 const SHELL = [
   "",
@@ -135,22 +135,6 @@ async function putSafe(cache, requestUrl, follow) {
       }
       return true;
     }
-    if (res.status === 404 && type.includes("text/html")) {
-      const html = await res.text();
-      if (html.includes("Solar System Drive") || html.includes("/assets/") || html.includes("assets/")) {
-        const shell = new Response(html, {
-          status: 200,
-          headers: { "Content-Type": "text/html; charset=utf-8" },
-        });
-        try {
-          await cache.put(requestUrl, shell);
-        } catch (err) {
-          console.warn("[solar-system-drive] cache put skipped", requestUrl, err);
-        }
-        if (follow) await harvest(cache, html, requestUrl);
-        return true;
-      }
-    }
     logMiss(requestUrl, res.status);
   } catch (error) {
     logMiss(requestUrl, error);
@@ -187,34 +171,6 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-async function shellResponse() {
-  return (
-    (await caches.match(abs(""), { ignoreSearch: true })) ||
-    (await caches.match(abs("index.html"), { ignoreSearch: true })) ||
-    (await caches.match(scopeUrl().href, { ignoreSearch: true }))
-  );
-}
-
-async function matchNavigation(req) {
-  const url = new URL(req.url);
-  const pathnames = [url.pathname];
-  if (url.pathname.endsWith("/index.html")) {
-    const trimmed = url.pathname.slice(0, -"/index.html".length);
-    pathnames.push(trimmed.endsWith("/") ? trimmed : `${trimmed}/`);
-  } else if (url.pathname.endsWith("/")) {
-    pathnames.push(`${url.pathname}index.html`);
-    if (url.pathname.length > 1) pathnames.push(url.pathname.slice(0, -1));
-  } else {
-    pathnames.push(`${url.pathname}/`);
-    pathnames.push(`${url.pathname}/index.html`);
-  }
-  for (const pathname of pathnames) {
-    const hit = await caches.match(new URL(pathname, url.origin).href, { ignoreSearch: true });
-    if (hit) return hit;
-  }
-  return shellResponse();
-}
-
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
@@ -222,11 +178,11 @@ self.addEventListener("fetch", (event) => {
   if (!inScope(url)) return;
   if (url.pathname.includes("/api/") || url.pathname.includes("/_serverFn")) return;
 
+  // Do not intercept page navigations. Let the browser handle redirects
+  // (GitHub Pages trailing-slash 301s) so the installed app does not fail.
   const isNavigate = req.mode === "navigate" || req.destination === "document";
-  if (isNavigate) {
-    event.respondWith(networkFirstNavigation(req));
-    return;
-  }
+  if (isNavigate) return;
+
   event.respondWith(cacheFirst(req));
 });
 
@@ -247,34 +203,5 @@ async function cacheFirst(req) {
   } catch (error) {
     logMiss(req.url, error);
     return new Response("", { status: 503, statusText: "Offline" });
-  }
-}
-
-async function networkFirstNavigation(req) {
-  try {
-    const res = await fetch(req, { redirect: "follow" });
-    if (res.ok) {
-      try {
-        const cache = await caches.open(CACHE);
-        await cache.put(req, res.clone());
-      } catch (err) {
-        console.warn("[solar-system-drive] nav cache put skipped", req.url, err);
-      }
-      return res;
-    }
-    const cached = await matchNavigation(req);
-    if (cached) return cached;
-    if (res.status === 404) {
-      const type = res.headers.get("content-type") || "";
-      if (type.includes("text/html")) return res;
-    }
-    return res;
-  } catch (error) {
-    console.warn("[solar-system-drive] nav fetch failed", req.url, error);
-    const cached = await matchNavigation(req);
-    if (cached) return cached;
-    const offline = await caches.match(abs("offline.html"));
-    if (offline) return offline;
-    return new Response("Offline", { status: 503, statusText: "Offline" });
   }
 }
