@@ -1,4 +1,4 @@
-const CACHE = "solar-system-drive-v20261008";
+const CACHE = "solar-system-drive-v20261012";
 
 const SHELL = [
   "",
@@ -115,10 +115,14 @@ async function putSafe(cache, requestUrl, follow) {
   if (seen.has(requestUrl)) return false;
   seen.add(requestUrl);
   try {
-    const res = await fetch(requestUrl, { cache: "no-cache" });
+    const res = await fetch(requestUrl, { cache: "no-cache", redirect: "follow" });
     const type = res.headers.get("content-type") || "";
     if (res.ok) {
-      await cache.put(requestUrl, res.clone());
+      try {
+        await cache.put(requestUrl, res.clone());
+      } catch (err) {
+        console.warn("[solar-system-drive] cache put skipped", requestUrl, err);
+      }
       if (
         follow &&
         (type.includes("text/html") ||
@@ -138,7 +142,11 @@ async function putSafe(cache, requestUrl, follow) {
           status: 200,
           headers: { "Content-Type": "text/html; charset=utf-8" },
         });
-        await cache.put(requestUrl, shell);
+        try {
+          await cache.put(requestUrl, shell);
+        } catch (err) {
+          console.warn("[solar-system-drive] cache put skipped", requestUrl, err);
+        }
         if (follow) await harvest(cache, html, requestUrl);
         return true;
       }
@@ -228,8 +236,12 @@ async function cacheFirst(req) {
   try {
     const res = await fetch(req);
     if (res.ok) {
-      const cache = await caches.open(CACHE);
-      await cache.put(req, res.clone());
+      try {
+        const cache = await caches.open(CACHE);
+        await cache.put(req, res.clone());
+      } catch (err) {
+        console.warn("[solar-system-drive] cache put skipped", req.url, err);
+      }
     }
     return res;
   } catch (error) {
@@ -240,10 +252,14 @@ async function cacheFirst(req) {
 
 async function networkFirstNavigation(req) {
   try {
-    const res = await fetch(req);
+    const res = await fetch(req, { redirect: "follow" });
     if (res.ok) {
-      const cache = await caches.open(CACHE);
-      await cache.put(req, res.clone());
+      try {
+        const cache = await caches.open(CACHE);
+        await cache.put(req, res.clone());
+      } catch (err) {
+        console.warn("[solar-system-drive] nav cache put skipped", req.url, err);
+      }
       return res;
     }
     const cached = await matchNavigation(req);
@@ -253,7 +269,8 @@ async function networkFirstNavigation(req) {
       if (type.includes("text/html")) return res;
     }
     return res;
-  } catch {
+  } catch (error) {
+    console.warn("[solar-system-drive] nav fetch failed", req.url, error);
     const cached = await matchNavigation(req);
     if (cached) return cached;
     const offline = await caches.match(abs("offline.html"));
